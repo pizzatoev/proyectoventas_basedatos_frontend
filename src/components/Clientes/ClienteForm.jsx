@@ -32,9 +32,15 @@ const ClienteForm = () => {
         let valid = true;
         const errorsCopy = { ...errors };
 
-        // nombre
+        // nombre - solo letras y espacios
         if (nombre.trim()) {
-            errorsCopy.nombre = '';
+            const nombreRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+            if (!nombreRegex.test(nombre.trim())) {
+                errorsCopy.nombre = 'El nombre solo puede contener letras y espacios';
+                valid = false;
+            } else {
+                errorsCopy.nombre = '';
+            }
         } else {
             errorsCopy.nombre = 'Nombre is required';
             valid = false;
@@ -61,7 +67,12 @@ const ClienteForm = () => {
     function saveClienteOrUpdate(e) {
         e.preventDefault();
 
-        const cliente = { nombre, email };
+        // Validar antes de guardar o actualizar
+        if (!validateForm()) {
+            return;
+        }
+
+        const cliente = { nombre: nombre.trim(), email: email.trim() };
 
         if (id) {
             // actualizar
@@ -72,14 +83,12 @@ const ClienteForm = () => {
                 console.log(error);
             });
         } else {
-            if (validateForm()) {
-                addNewCliente(cliente).then((response) => {
-                    console.log(response.data);
-                    navigate('/clientes');
-                }).catch((error) => {
-                    console.log(error);
-                });
-            }
+            addNewCliente(cliente).then((response) => {
+                console.log(response.data);
+                navigate('/clientes');
+            }).catch((error) => {
+                console.log(error);
+            });
         }
     }
 

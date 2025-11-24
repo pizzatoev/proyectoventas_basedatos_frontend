@@ -78,9 +78,19 @@ const PedidoForm = () => {
             valid = false;
         }
 
-        // fecha
+        // fecha - no debe ser anterior a la fecha actual
         if (fecha.trim()) {
-            errorsCopy.fecha = '';
+            const fechaSeleccionada = new Date(fecha);
+            const fechaActual = new Date();
+            fechaActual.setHours(0, 0, 0, 0);
+            fechaSeleccionada.setHours(0, 0, 0, 0);
+            
+            if (fechaSeleccionada < fechaActual) {
+                errorsCopy.fecha = 'La fecha no puede ser anterior a la fecha actual';
+                valid = false;
+            } else {
+                errorsCopy.fecha = '';
+            }
         } else {
             errorsCopy.fecha = 'Fecha is required';
             valid = false;
@@ -91,11 +101,30 @@ const PedidoForm = () => {
             errorsCopy.productos = 'At least one product is required';
             valid = false;
         } else {
-            const productosInvalidos = productosSeleccionados.some(p => !p.idProd || !p.cantidad || p.cantidad <= 0);
-            if (productosInvalidos) {
-                errorsCopy.productos = 'All products must have valid selection and quantity';
-                valid = false;
-            } else {
+            // Validar cada producto
+            for (let i = 0; i < productosSeleccionados.length; i++) {
+                const p = productosSeleccionados[i];
+                if (!p.idProd) {
+                    errorsCopy.productos = 'Todos los productos deben estar seleccionados';
+                    valid = false;
+                    break;
+                }
+                // Validar que cantidad sea un número válido
+                const cantidadNum = parseInt(p.cantidad);
+                if (!p.cantidad || isNaN(cantidadNum) || cantidadNum <= 0) {
+                    errorsCopy.productos = 'La cantidad debe ser mayor a 0';
+                    valid = false;
+                    break;
+                }
+                // Validar límite de caracteres en cantidad (máximo 6 dígitos = 999999)
+                const cantidadStr = p.cantidad.toString();
+                if (cantidadStr.length > 6) {
+                    errorsCopy.productos = 'La cantidad no puede tener más de 6 dígitos';
+                    valid = false;
+                    break;
+                }
+            }
+            if (valid) {
                 errorsCopy.productos = '';
             }
         }
@@ -218,10 +247,17 @@ const PedidoForm = () => {
                                             <input
                                                 type="number"
                                                 min="1"
+                                                max="999999"
                                                 placeholder="Cantidad"
                                                 className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500"
                                                 value={item.cantidad}
-                                                onChange={(e) => actualizarProducto(index, 'cantidad', parseInt(e.target.value) || 1)}
+                                                onChange={(e) => {
+                                                    const valor = e.target.value;
+                                                    // Limitar a 6 dígitos y solo números positivos
+                                                    if (valor === '' || (valor.length <= 6 && parseInt(valor) > 0)) {
+                                                        actualizarProducto(index, 'cantidad', valor === '' ? '' : parseInt(valor));
+                                                    }
+                                                }}
                                             />
                                         </div>
                                         <div className="w-24 text-right font-semibold">

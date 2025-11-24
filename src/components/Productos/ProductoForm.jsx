@@ -40,11 +40,17 @@ const ProductoForm = () => {
             valid = false;
         }
 
-        // precio
+        // precio - debe ser mayor a 0 y tener un límite máximo
         if (precio) {
             const precioNum = parseFloat(precio);
-            if (isNaN(precioNum) || precioNum <= 0) {
-                errorsCopy.precio = 'Precio must be a valid positive number';
+            if (isNaN(precioNum)) {
+                errorsCopy.precio = 'Precio must be a valid number';
+                valid = false;
+            } else if (precioNum <= 0) {
+                errorsCopy.precio = 'El precio debe ser mayor a 0';
+                valid = false;
+            } else if (precioNum > 999999.99) {
+                errorsCopy.precio = 'El precio no puede ser mayor a 999,999.99';
                 valid = false;
             } else {
                 errorsCopy.precio = '';
@@ -61,7 +67,12 @@ const ProductoForm = () => {
     function saveProductoOrUpdate(e) {
         e.preventDefault();
 
-        const producto = { nombre, precio: parseFloat(precio) };
+        // Validar antes de guardar o actualizar
+        if (!validateForm()) {
+            return;
+        }
+
+        const producto = { nombre: nombre.trim(), precio: parseFloat(precio) };
 
         if (id) {
             // actualizar
@@ -72,14 +83,12 @@ const ProductoForm = () => {
                 console.log(error);
             });
         } else {
-            if (validateForm()) {
-                addNewProducto(producto).then((response) => {
-                    console.log(response.data);
-                    navigate('/productos');
-                }).catch((error) => {
-                    console.log(error);
-                });
-            }
+            addNewProducto(producto).then((response) => {
+                console.log(response.data);
+                navigate('/productos');
+            }).catch((error) => {
+                console.log(error);
+            });
         }
     }
 
@@ -117,7 +126,8 @@ const ProductoForm = () => {
                                 <input
                                     type="number"
                                     step="0.01"
-                                    min="0"
+                                    min="0.01"
+                                    max="999999.99"
                                     placeholder="Enter Producto Price"
                                     name="precio"
                                     value={precio}

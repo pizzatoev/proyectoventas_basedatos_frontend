@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { addNewFactura } from '../../services/facturaService.js';
 import { listPedidos } from '../../services/pedidoService.js';
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const FacturaForm = () => {
     const [idPedido, setIdPedido] = useState('');
@@ -28,7 +29,8 @@ const FacturaForm = () => {
     // estado para administrar mensajes de error del formulario
     const [errors, setErrors] = useState({
         idPedido: '',
-        fecha: ''
+        fecha: '',
+        nro: ''
     });
 
     // Función para validar cada propiedad obligatoria
@@ -44,12 +46,50 @@ const FacturaForm = () => {
             valid = false;
         }
 
-        // fecha
+        // fecha - debe ser igual o posterior a la fecha del pedido
         if (fecha.trim()) {
-            errorsCopy.fecha = '';
+            const fechaSeleccionada = new Date(fecha);
+            const fechaActual = new Date();
+            fechaActual.setHours(0, 0, 0, 0);
+            fechaSeleccionada.setHours(0, 0, 0, 0);
+            
+            // Obtener la fecha del pedido seleccionado
+            const pedidoSeleccionado = pedidos.find(p => p.idPedido === parseInt(idPedido));
+            if (pedidoSeleccionado && pedidoSeleccionado.fecha) {
+                const fechaPedido = new Date(pedidoSeleccionado.fecha);
+                fechaPedido.setHours(0, 0, 0, 0);
+                
+                if (fechaSeleccionada < fechaPedido) {
+                    errorsCopy.fecha = 'La fecha de la factura no puede ser anterior a la fecha del pedido';
+                    valid = false;
+                } else {
+                    errorsCopy.fecha = '';
+                }
+            } else if (fechaSeleccionada < fechaActual) {
+                errorsCopy.fecha = 'La fecha no puede ser anterior a la fecha actual';
+                valid = false;
+            } else {
+                errorsCopy.fecha = '';
+            }
         } else {
             errorsCopy.fecha = 'Fecha is required';
             valid = false;
+        }
+
+        // nro factura (opcional pero si se ingresa debe validarse)
+        if (nro.trim()) {
+            const nroNum = parseInt(nro);
+            if (isNaN(nroNum) || nroNum < 0) {
+                errorsCopy.nro = 'El número de factura debe ser un número positivo';
+                valid = false;
+            } else if (nro.length > 20) {
+                errorsCopy.nro = 'El número de factura no puede tener más de 20 caracteres';
+                valid = false;
+            } else {
+                errorsCopy.nro = '';
+            }
+        } else {
+            errorsCopy.nro = '';
         }
 
         setErrors(errorsCopy);
@@ -69,14 +109,29 @@ const FacturaForm = () => {
         const factura = {
             idPedido: parseInt(idPedido),
             fecha: fechaFormato,
-            ...(nro && { nro: nro })
+            ...(nro && nro.trim() && { nro: nro.trim() })
         };
 
         addNewFactura(factura).then((response) => {
             console.log(response.data);
+            Swal.fire({
+                title: "Éxito",
+                text: "Factura creada correctamente",
+                icon: "success",
+                confirmButtonColor: "#2563eb",
+            });
             navigate('/facturas');
         }).catch((error) => {
             console.log(error);
+            let errorMessage = "Error al crear la factura";
+            if (error.response?.data?.message) {
+                errorMessage = error.response.data.message;
+            }
+            Swal.fire({
+                title: "Error",
+                text: errorMessage,
+                icon: "error"
+            });
         });
     }
 
@@ -125,9 +180,11 @@ const FacturaForm = () => {
                                     placeholder="Enter Nro Factura (optional)"
                                     name="nro"
                                     value={nro}
-                                    className="w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                    maxLength={20}
+                                    className={`w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.nro ? 'border-red-500' : ''}`}
                                     onChange={(e) => setNro(e.target.value)}
                                 />
+                                {errors.nro && <div className="text-red-500 text-sm mt-1">{errors.nro}</div>}
                             </div>
 
                             <div className="flex gap-3">
