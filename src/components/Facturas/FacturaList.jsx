@@ -113,7 +113,7 @@ const FacturaList = () => {
                                         {factura.fecha ? new Date(factura.fecha).toLocaleDateString() : 'N/A'}
                                     </td>
                                     <td className="p-3 text-gray-600 font-semibold">
-                                        ${factura.total?.toFixed(2) || '0.00'}
+                                        BS. {factura.total?.toFixed(2) || '0.00'}
                                     </td>
                                     <td className="p-3 text-center">
                                         <div className="flex justify-center gap-2">

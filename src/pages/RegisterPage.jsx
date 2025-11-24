@@ -26,17 +26,29 @@ const RegisterPage = () => {
         let valid = true;
         const errorsCopy = { ...errors };
 
-        // firstname
+        // firstname - solo letras
         if (firstname.trim()) {
-            errorsCopy.firstname = '';
+            const nombreRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+            if (!nombreRegex.test(firstname.trim())) {
+                errorsCopy.firstname = 'El nombre solo puede contener letras';
+                valid = false;
+            } else {
+                errorsCopy.firstname = '';
+            }
         } else {
             errorsCopy.firstname = 'First Name is required';
             valid = false;
         }
 
-        // lastname
+        // lastname - solo letras
         if (lastname.trim()) {
-            errorsCopy.lastname = '';
+            const nombreRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+            if (!nombreRegex.test(lastname.trim())) {
+                errorsCopy.lastname = 'El apellido solo puede contener letras';
+                valid = false;
+            } else {
+                errorsCopy.lastname = '';
+            }
         } else {
             errorsCopy.lastname = 'Last Name is required';
             valid = false;
@@ -56,10 +68,16 @@ const RegisterPage = () => {
             valid = false;
         }
 
-        // password
+        // password - máximo 32 caracteres, debe tener letras y números
         if (password.trim()) {
             if (password.length < 6) {
                 errorsCopy.password = 'Password must be at least 6 characters';
+                valid = false;
+            } else if (password.length > 32) {
+                errorsCopy.password = 'Password must be at most 32 characters';
+                valid = false;
+            } else if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
+                errorsCopy.password = 'Password must contain both letters and numbers';
                 valid = false;
             } else {
                 errorsCopy.password = '';
@@ -162,7 +180,7 @@ const RegisterPage = () => {
                         <label className='form-label text-gray-700 font-medium'>Password</label>
                         <input
                             type="password"
-                            placeholder="Enter your password (min 6 characters)"
+                            placeholder="Enter your password (6-32 chars, letters and numbers)"
                             name="password"
                             value={password}
                             className={`w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.password ? 'border-red-500' : ''}`}

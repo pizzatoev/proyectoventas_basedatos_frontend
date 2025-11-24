@@ -236,11 +236,19 @@ const PedidoForm = () => {
                                                 onChange={(e) => actualizarProducto(index, 'idProd', e.target.value)}
                                             >
                                                 <option value="">Select Producto</option>
-                                                {productos.map(producto =>
-                                                    <option key={producto.idProd} value={producto.idProd}>
-                                                        {producto.nombre} - ${producto.precio?.toFixed(2)}
-                                                    </option>
-                                                )}
+                                                {productos
+                                                    .filter(producto => {
+                                                        // Filtrar productos ya seleccionados
+                                                        const yaSeleccionado = productosSeleccionados.some(
+                                                            p => p.idProd === producto.idProd.toString() && p.idProd !== item.idProd
+                                                        );
+                                                        return !yaSeleccionado;
+                                                    })
+                                                    .map(producto =>
+                                                        <option key={producto.idProd} value={producto.idProd}>
+                                                            {producto.nombre} - BS. {producto.precio?.toFixed(2)}
+                                                        </option>
+                                                    )}
                                             </select>
                                         </div>
                                         <div className="w-32">
@@ -261,7 +269,7 @@ const PedidoForm = () => {
                                             />
                                         </div>
                                         <div className="w-24 text-right font-semibold">
-                                            ${item.producto && item.cantidad ? (item.producto.precio * item.cantidad).toFixed(2) : '0.00'}
+                                            BS. {item.producto && item.cantidad ? (item.producto.precio * item.cantidad).toFixed(2) : '0.00'}
                                         </div>
                                         <button
                                             type="button"
@@ -277,7 +285,7 @@ const PedidoForm = () => {
                             <div className="bg-gray-100 p-4 rounded-lg mb-4">
                                 <div className="flex justify-between items-center">
                                     <span className="text-lg font-bold text-gray-700">Total:</span>
-                                    <span className="text-2xl font-bold text-blue-600">${calcularTotal().toFixed(2)}</span>
+                                    <span className="text-2xl font-bold text-blue-600">BS. {calcularTotal().toFixed(2)}</span>
                                 </div>
                             </div>
 

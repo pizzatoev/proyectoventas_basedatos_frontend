@@ -32,9 +32,19 @@ const ProductoForm = () => {
         let valid = true;
         const errorsCopy = { ...errors };
 
-        // nombre
+        // nombre - puede tener letras y números pero no solo números
         if (nombre.trim()) {
-            errorsCopy.nombre = '';
+            const nombreTrim = nombre.trim();
+            // Verificar que no sea solo números
+            if (/^\d+$/.test(nombreTrim)) {
+                errorsCopy.nombre = 'El nombre no puede contener solo números';
+                valid = false;
+            } else if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s]+$/.test(nombreTrim)) {
+                errorsCopy.nombre = 'El nombre solo puede contener letras y números';
+                valid = false;
+            } else {
+                errorsCopy.nombre = '';
+            }
         } else {
             errorsCopy.nombre = 'Nombre is required';
             valid = false;
@@ -46,8 +56,8 @@ const ProductoForm = () => {
             if (isNaN(precioNum)) {
                 errorsCopy.precio = 'Precio must be a valid number';
                 valid = false;
-            } else if (precioNum <= 0) {
-                errorsCopy.precio = 'El precio debe ser mayor a 0';
+            } else if (precioNum < 0.1) {
+                errorsCopy.precio = 'El precio debe ser mayor o igual a 0.1';
                 valid = false;
             } else if (precioNum > 999999.99) {
                 errorsCopy.precio = 'El precio no puede ser mayor a 999,999.99';
@@ -125,8 +135,8 @@ const ProductoForm = () => {
                                 <label className='form-label text-gray-700 font-medium mb-2 block'>Precio</label>
                                 <input
                                     type="number"
-                                    step="0.01"
-                                    min="0.01"
+                                    step="0.1"
+                                    min="0.1"
                                     max="999999.99"
                                     placeholder="Enter Producto Price"
                                     name="precio"

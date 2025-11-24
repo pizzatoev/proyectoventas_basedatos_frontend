@@ -105,7 +105,7 @@ const ProductoList = () => {
                                         {producto.nombre}
                                     </td>
                                     <td className="p-3 text-gray-600">
-                                        ${producto.precio?.toFixed(2) || '0.00'}
+                                        BS. {producto.precio?.toFixed(2) || '0.00'}
                                     </td>
                                     <td className="p-3 text-center">
                                         <div className="flex justify-center gap-2">

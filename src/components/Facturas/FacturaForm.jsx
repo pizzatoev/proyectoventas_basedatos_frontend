@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { addNewFactura } from '../../services/facturaService.js';
 import { listPedidos } from '../../services/pedidoService.js';
+import { listFacturas } from '../../services/facturaService.js';
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
@@ -9,11 +10,13 @@ const FacturaForm = () => {
     const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
     const [nro, setNro] = useState('');
     const [pedidos, setPedidos] = useState([]);
+    const [facturas, setFacturas] = useState([]);
 
     const navigate = useNavigate();
 
     useEffect(() => {
         loadPedidos();
+        loadFacturas();
     }, []);
 
     const loadPedidos = async () => {
@@ -25,6 +28,22 @@ const FacturaForm = () => {
             console.error("Error loading pedidos:", error);
         }
     };
+
+    const loadFacturas = async () => {
+        try {
+            const response = await listFacturas();
+            const facturasList = response.data?.data || response.data || [];
+            setFacturas(Array.isArray(facturasList) ? facturasList : []);
+        } catch (error) {
+            console.error("Error loading facturas:", error);
+        }
+    };
+
+    // Obtener IDs de pedidos que ya tienen factura
+    const pedidosFacturados = facturas.map(f => f.idPedido).filter(id => id != null);
+    
+    // Filtrar pedidos que no tienen factura
+    const pedidosDisponibles = pedidos.filter(p => !pedidosFacturados.includes(p.idPedido));
 
     // estado para administrar mensajes de error del formulario
     const [errors, setErrors] = useState({
@@ -65,11 +84,14 @@ const FacturaForm = () => {
                 } else {
                     errorsCopy.fecha = '';
                 }
-            } else if (fechaSeleccionada < fechaActual) {
-                errorsCopy.fecha = 'La fecha no puede ser anterior a la fecha actual';
-                valid = false;
             } else {
-                errorsCopy.fecha = '';
+                // Permitir fecha de hoy o futura
+                if (fechaSeleccionada < fechaActual) {
+                    errorsCopy.fecha = 'La fecha no puede ser anterior a la fecha actual';
+                    valid = false;
+                } else {
+                    errorsCopy.fecha = '';
+                }
             }
         } else {
             errorsCopy.fecha = 'Fecha is required';
@@ -152,9 +174,9 @@ const FacturaForm = () => {
                                     onChange={(e) => setIdPedido(e.target.value)}
                                 >
                                     <option value="">Select Pedido</option>
-                                    {pedidos.map(pedido =>
+                                    {pedidosDisponibles.map(pedido =>
                                         <option key={pedido.idPedido} value={pedido.idPedido}>
-                                            Pedido #{pedido.idPedido} - Cliente: {pedido.clienteNombre || 'N/A'} - Total: ${pedido.total?.toFixed(2) || '0.00'}
+                                            Pedido #{pedido.idPedido} - Cliente: {pedido.clienteNombre || 'N/A'} - Total: BS. {pedido.total?.toFixed(2) || '0.00'}
                                         </option>
                                     )}
                                 </select>

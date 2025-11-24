@@ -109,7 +109,7 @@ const PedidoList = () => {
                                         {pedido.fecha ? new Date(pedido.fecha).toLocaleDateString() : 'N/A'}
                                     </td>
                                     <td className="p-3 text-gray-600 font-semibold">
-                                        ${pedido.total?.toFixed(2) || '0.00'}
+                                        BS. {pedido.total?.toFixed(2) || '0.00'}
                                     </td>
                                     <td className="p-3 text-center">
                                         <div className="flex justify-center gap-2">
