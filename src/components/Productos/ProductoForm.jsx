@@ -136,8 +136,6 @@ const ProductoForm = () => {
                                 <input
                                     type="number"
                                     step="0.1"
-                                    min="0.1"
-                                    max="999999.99"
                                     placeholder="Enter Producto Price"
                                     name="precio"
                                     value={precio}

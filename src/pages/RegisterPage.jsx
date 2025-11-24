@@ -36,7 +36,7 @@ const RegisterPage = () => {
                 errorsCopy.firstname = '';
             }
         } else {
-            errorsCopy.firstname = 'First Name is required';
+            errorsCopy.firstname = 'Se requiere el primer nombre';
             valid = false;
         }
 
@@ -50,7 +50,7 @@ const RegisterPage = () => {
                 errorsCopy.lastname = '';
             }
         } else {
-            errorsCopy.lastname = 'Last Name is required';
+            errorsCopy.lastname = 'Se requiere el apellido';
             valid = false;
         }
 
@@ -58,32 +58,32 @@ const RegisterPage = () => {
         if (email.trim()) {
             const validEmail = /^(?=.{6,254}$)(?=.{1,64}@)[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
             if (!validEmail.test(email)) {
-                errorsCopy.email = 'Email is not correct';
+                errorsCopy.email = 'El email no es correcto';
                 valid = false;
             } else {
                 errorsCopy.email = '';
             }
         } else {
-            errorsCopy.email = 'Email is required';
+            errorsCopy.email = 'Se requiere el email';
             valid = false;
         }
 
         // password - máximo 32 caracteres, debe tener letras y números
         if (password.trim()) {
             if (password.length < 6) {
-                errorsCopy.password = 'Password must be at least 6 characters';
+                errorsCopy.password = 'La contraseña debe tener al menos 6 caracteres';
                 valid = false;
             } else if (password.length > 32) {
-                errorsCopy.password = 'Password must be at most 32 characters';
+                errorsCopy.password = 'La contraseña debe tener como máximo 32 caracteres';
                 valid = false;
             } else if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) {
-                errorsCopy.password = 'Password must contain both letters and numbers';
+                errorsCopy.password = 'La contraseña debe contener letras y números';
                 valid = false;
             } else {
                 errorsCopy.password = '';
             }
         } else {
-            errorsCopy.password = 'Password is required';
+            errorsCopy.password = 'Se requiere la contraseña';
             valid = false;
         }
 
@@ -91,7 +91,7 @@ const RegisterPage = () => {
         if (role) {
             errorsCopy.role = '';
         } else {
-            errorsCopy.role = 'Select Role';
+            errorsCopy.role = 'Seleccione un rol';
             valid = false;
         }
 
