@@ -78,15 +78,20 @@ const PedidoForm = () => {
             valid = false;
         }
 
-        // fecha - no debe ser anterior a la fecha actual
+        // fecha - solo puede ser el día de hoy
         if (fecha.trim()) {
-            const fechaSeleccionada = new Date(fecha);
-            const fechaActual = new Date();
-            fechaActual.setHours(0, 0, 0, 0);
-            fechaSeleccionada.setHours(0, 0, 0, 0);
+            // Obtener la fecha de hoy en formato YYYY-MM-DD
+            const hoy = new Date();
+            const fechaHoy = hoy.getFullYear() + '-' + 
+                           String(hoy.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(hoy.getDate()).padStart(2, '0');
             
-            if (fechaSeleccionada < fechaActual) {
-                errorsCopy.fecha = 'La fecha no puede ser anterior a la fecha actual';
+            // Comparar directamente los strings de fecha
+            if (fecha < fechaHoy) {
+                errorsCopy.fecha = 'La fecha no puede ser anterior al día de hoy';
+                valid = false;
+            } else if (fecha > fechaHoy) {
+                errorsCopy.fecha = 'Solo se pueden registrar pedidos del día de hoy';
                 valid = false;
             } else {
                 errorsCopy.fecha = '';
