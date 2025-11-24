@@ -65,29 +65,45 @@ const FacturaForm = () => {
             valid = false;
         }
 
-        // fecha - debe ser igual o posterior a la fecha del pedido
+        // fecha - debe ser igual o posterior a la fecha del pedido, pero solo del día de hoy
         if (fecha.trim()) {
-            const fechaSeleccionada = new Date(fecha);
-            const fechaActual = new Date();
-            fechaActual.setHours(0, 0, 0, 0);
-            fechaSeleccionada.setHours(0, 0, 0, 0);
+            // Obtener la fecha de hoy en formato YYYY-MM-DD
+            const hoy = new Date();
+            const fechaHoy = hoy.getFullYear() + '-' + 
+                           String(hoy.getMonth() + 1).padStart(2, '0') + '-' + 
+                           String(hoy.getDate()).padStart(2, '0');
             
             // Obtener la fecha del pedido seleccionado
             const pedidoSeleccionado = pedidos.find(p => p.idPedido === parseInt(idPedido));
             if (pedidoSeleccionado && pedidoSeleccionado.fecha) {
-                const fechaPedido = new Date(pedidoSeleccionado.fecha);
-                fechaPedido.setHours(0, 0, 0, 0);
+                // Convertir fecha del pedido a formato YYYY-MM-DD
+                const fechaPedidoObj = new Date(pedidoSeleccionado.fecha);
+                const fechaPedido = fechaPedidoObj.getFullYear() + '-' + 
+                                  String(fechaPedidoObj.getMonth() + 1).padStart(2, '0') + '-' + 
+                                  String(fechaPedidoObj.getDate()).padStart(2, '0');
                 
-                if (fechaSeleccionada < fechaPedido) {
+                // La fecha de la factura no puede ser anterior a la fecha del pedido
+                if (fecha < fechaPedido) {
                     errorsCopy.fecha = 'La fecha de la factura no puede ser anterior a la fecha del pedido';
+                    valid = false;
+                } else if (fecha > fechaHoy) {
+                    // No puede ser futura
+                    errorsCopy.fecha = 'Solo se pueden registrar facturas del día de hoy';
+                    valid = false;
+                } else if (fecha < fechaHoy) {
+                    // No puede ser anterior a hoy
+                    errorsCopy.fecha = 'La fecha no puede ser anterior al día de hoy';
                     valid = false;
                 } else {
                     errorsCopy.fecha = '';
                 }
             } else {
-                // Permitir fecha de hoy o futura
-                if (fechaSeleccionada < fechaActual) {
-                    errorsCopy.fecha = 'La fecha no puede ser anterior a la fecha actual';
+                // Si no hay pedido seleccionado, solo validar que sea hoy
+                if (fecha < fechaHoy) {
+                    errorsCopy.fecha = 'La fecha no puede ser anterior al día de hoy';
+                    valid = false;
+                } else if (fecha > fechaHoy) {
+                    errorsCopy.fecha = 'Solo se pueden registrar facturas del día de hoy';
                     valid = false;
                 } else {
                     errorsCopy.fecha = '';

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { listPedidos, deletePedido } from "../../services/pedidoService.js";
-import { FiShoppingCart, FiPlus, FiTrash2, FiX } from "react-icons/fi";
+import { listPedidos, deletePedido, getPedido } from "../../services/pedidoService.js";
+import { FiShoppingCart, FiPlus, FiTrash2, FiEye } from "react-icons/fi";
 
 const PedidoList = () => {
     const [pedidos, setPedidos] = useState([]);
@@ -21,6 +21,46 @@ const PedidoList = () => {
             console.error("Error loading pedidos:", error);
             Swal.fire("Error", "Failed to load pedidos", "error");
             setPedidos([]);
+        }
+    };
+
+    const handleViewDetails = async (id) => {
+        try {
+            const response = await getPedido(id);
+            const pedido = response.data;
+            
+            // Construir HTML con los detalles del pedido
+            let productosHtml = '<div class="mt-4"><h3 class="font-semibold mb-2">Productos:</h3><ul class="list-disc list-inside space-y-1">';
+            if (pedido.productos && pedido.productos.length > 0) {
+                pedido.productos.forEach((prod, idx) => {
+                    productosHtml += `<li>${prod.nombre || 'N/A'} - Cantidad: ${prod.cantidad || 0} - Subtotal: BS. ${(prod.subtotal || 0).toFixed(2)}</li>`;
+                });
+            } else {
+                productosHtml += '<li>No hay productos</li>';
+            }
+            productosHtml += '</ul></div>';
+            
+            Swal.fire({
+                title: `Detalle del Pedido #${pedido.idPedido}`,
+                html: `
+                    <div class="text-left space-y-2">
+                        <p><strong>Cliente:</strong> ${pedido.nombreCliente || pedido.cliente?.nombre || 'N/A'}</p>
+                        <p><strong>Fecha:</strong> ${pedido.fecha ? new Date(pedido.fecha).toLocaleDateString() : 'N/A'}</p>
+                        <p><strong>Total:</strong> BS. ${(pedido.total || 0).toFixed(2)}</p>
+                        ${productosHtml}
+                    </div>
+                `,
+                width: '600px',
+                confirmButtonText: 'Cerrar',
+                confirmButtonColor: '#2563eb'
+            });
+        } catch (error) {
+            console.error("Error loading pedido details:", error);
+            Swal.fire({
+                title: "Error",
+                text: "No se pudo cargar el detalle del pedido",
+                icon: "error"
+            });
         }
     };
 
@@ -113,6 +153,13 @@ const PedidoList = () => {
                                     </td>
                                     <td className="p-3 text-center">
                                         <div className="flex justify-center gap-2">
+                                            <button
+                                                onClick={() => handleViewDetails(pedido.idPedido)}
+                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                title="Ver Detalle"
+                                            >
+                                                <FiEye />
+                                            </button>
                                             <button
                                                 onClick={() => handleDelete(pedido.idPedido)}
                                                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"

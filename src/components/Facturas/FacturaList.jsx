@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import { listFacturas, deleteFactura } from "../../services/facturaService.js";
-import { FiFileText, FiPlus, FiTrash2 } from "react-icons/fi";
+import { listFacturas, deleteFactura, getFactura } from "../../services/facturaService.js";
+import { FiFileText, FiPlus, FiTrash2, FiEye } from "react-icons/fi";
 
 const FacturaList = () => {
     const [facturas, setFacturas] = useState([]);
@@ -21,6 +21,35 @@ const FacturaList = () => {
             console.error("Error loading facturas:", error);
             Swal.fire("Error", "Failed to load facturas", "error");
             setFacturas([]);
+        }
+    };
+
+    const handleViewDetails = async (id) => {
+        try {
+            const response = await getFactura(id);
+            const factura = response.data;
+            
+            Swal.fire({
+                title: `Detalle de la Factura #${factura.idFactura}`,
+                html: `
+                    <div class="text-left space-y-2">
+                        <p><strong>Número de Factura:</strong> ${factura.nro || 'N/A'}</p>
+                        <p><strong>ID Pedido:</strong> ${factura.idPedido || 'N/A'}</p>
+                        <p><strong>Fecha:</strong> ${factura.fecha ? new Date(factura.fecha).toLocaleDateString() : 'N/A'}</p>
+                        <p><strong>Total:</strong> BS. ${(factura.total || 0).toFixed(2)}</p>
+                    </div>
+                `,
+                width: '500px',
+                confirmButtonText: 'Cerrar',
+                confirmButtonColor: '#2563eb'
+            });
+        } catch (error) {
+            console.error("Error loading factura details:", error);
+            Swal.fire({
+                title: "Error",
+                text: "No se pudo cargar el detalle de la factura",
+                icon: "error"
+            });
         }
     };
 
@@ -117,6 +146,13 @@ const FacturaList = () => {
                                     </td>
                                     <td className="p-3 text-center">
                                         <div className="flex justify-center gap-2">
+                                            <button
+                                                onClick={() => handleViewDetails(factura.idFactura)}
+                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                                title="Ver Detalle"
+                                            >
+                                                <FiEye />
+                                            </button>
                                             <button
                                                 onClick={() => handleDelete(factura.idFactura)}
                                                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
