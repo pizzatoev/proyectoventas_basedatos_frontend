@@ -1,0 +1,210 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
+import { register } from "../services/authService.js";
+
+const RegisterPage = () => {
+    const navigate = useNavigate();
+
+    const [firstname, setFirstname] = useState('');
+    const [lastname, setLastname] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [role, setRole] = useState('VENDEDOR');
+
+    // estado para administrar mensajes de error del formulario
+    const [errors, setErrors] = useState({
+        firstname: '',
+        lastname: '',
+        email: '',
+        password: '',
+        role: ''
+    });
+
+    // Función para validar cada propiedad obligatoria
+    function validateForm() {
+        let valid = true;
+        const errorsCopy = { ...errors };
+
+        // firstname
+        if (firstname.trim()) {
+            errorsCopy.firstname = '';
+        } else {
+            errorsCopy.firstname = 'First Name is required';
+            valid = false;
+        }
+
+        // lastname
+        if (lastname.trim()) {
+            errorsCopy.lastname = '';
+        } else {
+            errorsCopy.lastname = 'Last Name is required';
+            valid = false;
+        }
+
+        // email
+        if (email.trim()) {
+            const validEmail = /^(?=.{6,254}$)(?=.{1,64}@)[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+            if (!validEmail.test(email)) {
+                errorsCopy.email = 'Email is not correct';
+                valid = false;
+            } else {
+                errorsCopy.email = '';
+            }
+        } else {
+            errorsCopy.email = 'Email is required';
+            valid = false;
+        }
+
+        // password
+        if (password.trim()) {
+            if (password.length < 6) {
+                errorsCopy.password = 'Password must be at least 6 characters';
+                valid = false;
+            } else {
+                errorsCopy.password = '';
+            }
+        } else {
+            errorsCopy.password = 'Password is required';
+            valid = false;
+        }
+
+        // role
+        if (role) {
+            errorsCopy.role = '';
+        } else {
+            errorsCopy.role = 'Select Role';
+            valid = false;
+        }
+
+        setErrors(errorsCopy);
+        return valid;
+    }
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        
+        if (!validateForm()) {
+            return;
+        }
+
+        try {
+            const userData = { firstname, lastname, email, password, role };
+            const response = await register(userData);
+            
+            Swal.fire({
+                title: "Registro exitoso",
+                text: "Tu cuenta ha sido creada correctamente. Por favor inicia sesión.",
+                icon: "success",
+                confirmButtonColor: "#2563eb",
+            }).then(() => {
+                navigate("/login");
+            });
+        } catch (err) {
+            console.error("Error al registrar:", err);
+            Swal.fire({
+                title: "Error",
+                text: err.response?.data?.message || "Error al crear la cuenta. Intenta nuevamente.",
+                icon: "error"
+            });
+        }
+    };
+
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+            <div className="bg-white shadow-2xl rounded-xl p-8 w-full max-w-md">
+                <h1 className="text-3xl font-bold text-center text-blue-600 mb-2">
+                    Registro
+                </h1>
+                <p className="text-center text-gray-600 mb-6">Crea tu cuenta en SalesMaster PRO</p>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="form-group mb-2">
+                        <label className='form-label text-gray-700 font-medium'>First Name</label>
+                        <input
+                            type="text"
+                            placeholder="Enter your first name"
+                            name="firstname"
+                            value={firstname}
+                            className={`w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.firstname ? 'border-red-500' : ''}`}
+                            onChange={(e) => setFirstname(e.target.value)}
+                        />
+                        {errors.firstname && <div className="text-red-500 text-sm mt-1">{errors.firstname}</div>}
+                    </div>
+
+                    <div className="form-group mb-2">
+                        <label className='form-label text-gray-700 font-medium'>Last Name</label>
+                        <input
+                            type="text"
+                            placeholder="Enter your last name"
+                            name="lastname"
+                            value={lastname}
+                            className={`w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.lastname ? 'border-red-500' : ''}`}
+                            onChange={(e) => setLastname(e.target.value)}
+                        />
+                        {errors.lastname && <div className="text-red-500 text-sm mt-1">{errors.lastname}</div>}
+                    </div>
+
+                    <div className="form-group mb-2">
+                        <label className='form-label text-gray-700 font-medium'>Email</label>
+                        <input
+                            type="text"
+                            placeholder="Enter your email"
+                            name="email"
+                            value={email}
+                            className={`w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.email ? 'border-red-500' : ''}`}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                        {errors.email && <div className="text-red-500 text-sm mt-1">{errors.email}</div>}
+                    </div>
+
+                    <div className="form-group mb-2">
+                        <label className='form-label text-gray-700 font-medium'>Password</label>
+                        <input
+                            type="password"
+                            placeholder="Enter your password (min 6 characters)"
+                            name="password"
+                            value={password}
+                            className={`w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.password ? 'border-red-500' : ''}`}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                        {errors.password && <div className="text-red-500 text-sm mt-1">{errors.password}</div>}
+                    </div>
+
+                    <div className="form-group mb-2">
+                        <label className='form-label text-gray-700 font-medium'>Role</label>
+                        <select
+                            className={`w-full border border-gray-300 px-4 py-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors.role ? 'border-red-500' : ''}`}
+                            value={role}
+                            onChange={(e) => setRole(e.target.value)}
+                        >
+                            <option value="VENDEDOR">VENDEDOR</option>
+                            <option value="ADMIN">ADMIN</option>
+                        </select>
+                        {errors.role && <div className="text-red-500 text-sm mt-1">{errors.role}</div>}
+                    </div>
+
+                    <button
+                        type="submit"
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                    >
+                        Registrar
+                    </button>
+                </form>
+
+                <p className="text-center text-sm mt-4 text-gray-500">
+                    ¿Ya tienes una cuenta?{" "}
+                    <span
+                        className="text-blue-600 cursor-pointer hover:underline font-medium"
+                        onClick={() => navigate("/login")}
+                    >
+                        Iniciar sesión
+                    </span>
+                </p>
+            </div>
+        </div>
+    );
+};
+
+export default RegisterPage;
+
