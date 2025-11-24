@@ -33,7 +33,11 @@ const PedidoList = () => {
             let productosHtml = '<div class="mt-4"><h3 class="font-semibold mb-2">Productos:</h3><ul class="list-disc list-inside space-y-1">';
             if (pedido.productos && pedido.productos.length > 0) {
                 pedido.productos.forEach((prod, idx) => {
-                    productosHtml += `<li>${prod.nombre || 'N/A'} - Cantidad: ${prod.cantidad || 0} - Subtotal: BS. ${(prod.subtotal || 0).toFixed(2)}</li>`;
+                    const nombre = prod.nombreProducto || prod.nombre || 'N/A';
+                    const cantidad = prod.cantidad || 0;
+                    const precio = prod.precio || 0;
+                    const subtotal = prod.subtotal || 0;
+                    productosHtml += `<li><strong>${nombre}</strong> - Cantidad: ${cantidad} - Precio: BS. ${parseFloat(precio).toFixed(2)} - Subtotal: BS. ${parseFloat(subtotal).toFixed(2)}</li>`;
                 });
             } else {
                 productosHtml += '<li>No hay productos</li>';

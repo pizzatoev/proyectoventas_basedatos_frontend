@@ -162,9 +162,38 @@ const FacturaForm = () => {
         }).catch((error) => {
             console.log(error);
             let errorMessage = "Error al crear la factura";
-            if (error.response?.data?.message) {
-                errorMessage = error.response.data.message;
+            
+            // Manejar diferentes tipos de errores del backend
+            if (error.response?.data) {
+                const errorData = error.response.data;
+                
+                // Intentar obtener el mensaje de error
+                if (errorData.message) {
+                    errorMessage = errorData.message;
+                } else if (errorData.data) {
+                    // Algunos backends devuelven el mensaje en data
+                    if (typeof errorData.data === 'string') {
+                        errorMessage = errorData.data;
+                    } else if (errorData.data.message) {
+                        errorMessage = errorData.data.message;
+                    }
+                } else if (errorData.error) {
+                    errorMessage = errorData.error;
+                }
+                
+                // Verificar si es un error de validación (400) o conflicto (409)
+                if (error.response.status === 400 || error.response.status === 409) {
+                    // Estos son errores de validación o conflicto, mostrar el mensaje específico
+                    if (!errorMessage || errorMessage === "Error al crear la factura") {
+                        errorMessage = "El número de factura ya existe o hay un error de validación";
+                    }
+                }
+            } else if (error.request) {
+                errorMessage = "No se pudo conectar con el servidor";
+            } else {
+                errorMessage = error.message || "Error desconocido";
             }
+            
             Swal.fire({
                 title: "Error",
                 text: errorMessage,
