@@ -2,15 +2,29 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { listPedidos, deletePedido, getPedido } from "../../services/pedidoService.js";
-import { FiShoppingCart, FiPlus, FiTrash2, FiEye } from "react-icons/fi";
+import { addNewFactura } from "../../services/facturaService.js";
+import { listFacturas } from "../../services/facturaService.js";
+import { FiShoppingCart, FiPlus, FiTrash2, FiEye, FiFileText } from "react-icons/fi";
 
 const PedidoList = () => {
     const [pedidos, setPedidos] = useState([]);
+    const [facturas, setFacturas] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
         loadPedidos();
+        loadFacturas();
     }, []);
+
+    const loadFacturas = async () => {
+        try {
+            const response = await listFacturas();
+            const facturasList = response.data?.data || response.data || [];
+            setFacturas(Array.isArray(facturasList) ? facturasList : []);
+        } catch (error) {
+            console.error("Error loading facturas:", error);
+        }
+    };
 
     const loadPedidos = async () => {
         try {
@@ -63,6 +77,67 @@ const PedidoList = () => {
             Swal.fire({
                 title: "Error",
                 text: "No se pudo cargar el detalle del pedido",
+                icon: "error"
+            });
+        }
+    };
+
+    const handleGenerateFactura = async (pedidoId) => {
+        // Verificar si el pedido ya tiene factura
+        const pedidosFacturados = facturas.map(f => f.idPedido).filter(id => id != null);
+        if (pedidosFacturados.includes(pedidoId)) {
+            Swal.fire({
+                title: "Error",
+                text: "Este pedido ya tiene una factura asociada",
+                icon: "error"
+            });
+            return;
+        }
+
+        // Obtener la fecha de hoy
+        const hoy = new Date();
+        const fechaHoy = hoy.getFullYear() + '-' + 
+                       String(hoy.getMonth() + 1).padStart(2, '0') + '-' + 
+                       String(hoy.getDate()).padStart(2, '0');
+
+        try {
+            const factura = {
+                idPedido: pedidoId,
+                fecha: `${fechaHoy}T00:00:00`
+            };
+
+            await addNewFactura(factura);
+            Swal.fire({
+                title: "Éxito",
+                text: "Factura generada correctamente",
+                icon: "success",
+                confirmButtonColor: "#2563eb",
+            });
+            // Recargar facturas y pedidos
+            loadFacturas();
+            loadPedidos();
+        } catch (error) {
+            console.error("Error generating factura:", error);
+            let errorMessage = "Error al generar la factura";
+            
+            if (error.response?.data) {
+                const errorData = error.response.data;
+                if (errorData.message) {
+                    errorMessage = errorData.message;
+                } else if (errorData.data) {
+                    if (typeof errorData.data === 'string') {
+                        errorMessage = errorData.data;
+                    } else if (errorData.data.message) {
+                        errorMessage = errorData.data.message;
+                    }
+                } else if (errorData.error) {
+                    errorMessage = errorData.error;
+                }
+            }
+            
+            Swal.fire({
+                title: "Error",
+                text: errorMessage,
                 icon: "error"
             });
         }
@@ -164,6 +239,15 @@ const PedidoList = () => {
                                             >
                                                 <FiEye />
                                             </button>
+                                            {!facturas.some(f => f.idPedido === pedido.idPedido) && (
+                                                <button
+                                                    onClick={() => handleGenerateFactura(pedido.idPedido)}
+                                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
+                                                    title="Generar Factura"
+                                                >
+                                                    <FiFileText />
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => handleDelete(pedido.idPedido)}
                                                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"

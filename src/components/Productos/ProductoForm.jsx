@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
-import { addNewProducto, updateProducto, getProducto } from '../../services/productoService.js';
+import { addNewProducto, updateProducto, getProducto, listProductos } from '../../services/productoService.js';
 import { useNavigate, useParams } from "react-router-dom";
 
 const ProductoForm = () => {
     const [nombre, setNombre] = useState('');
     const [precio, setPrecio] = useState('');
+    const [productos, setProductos] = useState([]);
 
     const navigate = useNavigate();
     const { id } = useParams();
 
     useEffect(() => {
+        // Cargar lista de productos para validar duplicados
+        loadProductos();
+        
         if (id) {
             getProducto(id).then((response) => {
                 console.log(response.data);
@@ -20,6 +24,15 @@ const ProductoForm = () => {
             });
         }
     }, [id]);
+
+    const loadProductos = () => {
+        listProductos().then((response) => {
+            const productosList = response.data?.data || response.data || [];
+            setProductos(Array.isArray(productosList) ? productosList : []);
+        }).catch((error) => {
+            console.error(error);
+        });
+    };
 
     // estado para administrar mensajes de error del formulario
     const [errors, setErrors] = useState({
@@ -32,7 +45,7 @@ const ProductoForm = () => {
         let valid = true;
         const errorsCopy = { ...errors };
 
-        // nombre - puede tener letras y números pero no solo números
+        // nombre - puede tener letras y números pero no solo números, y no puede repetirse exactamente
         if (nombre.trim()) {
             const nombreTrim = nombre.trim();
             // Verificar que no sea solo números
@@ -43,7 +56,22 @@ const ProductoForm = () => {
                 errorsCopy.nombre = 'El nombre solo puede contener letras y números';
                 valid = false;
             } else {
-                errorsCopy.nombre = '';
+                // Verificar que no exista un producto con el mismo nombre exacto (case-insensitive)
+                const nombreLower = nombreTrim.toLowerCase();
+                const existeDuplicado = productos.some(p => {
+                    // Si es actualización, excluir el producto actual
+                    if (id && p.idProd === parseInt(id)) {
+                        return false;
+                    }
+                    return p.nombre && p.nombre.trim().toLowerCase() === nombreLower;
+                });
+                
+                if (existeDuplicado) {
+                    errorsCopy.nombre = 'Ya existe un producto con este nombre exacto';
+                    valid = false;
+                } else {
+                    errorsCopy.nombre = '';
+                }
             }
         } else {
             errorsCopy.nombre = 'Nombre is required';

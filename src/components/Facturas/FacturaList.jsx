@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { listFacturas, deleteFactura, getFactura } from "../../services/facturaService.js";
-import { FiFileText, FiPlus, FiTrash2, FiEye } from "react-icons/fi";
+import { FiFileText, FiTrash2, FiEye } from "react-icons/fi";
 
 const FacturaList = () => {
     const [facturas, setFacturas] = useState([]);
@@ -98,16 +98,9 @@ const FacturaList = () => {
                         Lista de Facturas
                     </h1>
                     <p className="text-gray-500 text-sm">
-                        Lista de facturas registradas en el sistema.
+                        Lista de facturas registradas en el sistema. Las facturas se generan desde los pedidos.
                     </p>
                 </div>
-                <button
-                    onClick={() => navigate("/facturas/add")}
-                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition"
-                >
-                    <FiPlus />
-                    Agregar Factura
-                </button>
             </div>
 
             <div className="bg-white shadow-md rounded-xl p-4 overflow-x-auto">
