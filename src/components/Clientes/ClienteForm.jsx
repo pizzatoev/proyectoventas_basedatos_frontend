@@ -1,15 +1,19 @@
 import { useState, useEffect } from 'react';
-import { addNewCliente, updateCliente, getCliente } from '../../services/clienteService.js';
+import { addNewCliente, updateCliente, getCliente, listClientes } from '../../services/clienteService.js';
 import { useNavigate, useParams } from "react-router-dom";
 
 const ClienteForm = () => {
     const [nombre, setNombre] = useState('');
     const [email, setEmail] = useState('');
+    const [clientes, setClientes] = useState([]);
 
     const navigate = useNavigate();
     const { id } = useParams();
 
     useEffect(() => {
+        // Cargar lista de clientes para validar duplicados
+        loadClientes();
+        
         if (id) {
             getCliente(id).then((response) => {
                 console.log(response.data);
@@ -21,11 +25,21 @@ const ClienteForm = () => {
         }
     }, [id]);
 
+    const loadClientes = () => {
+        listClientes().then((response) => {
+            const clientesList = response.data?.data || response.data || [];
+            setClientes(Array.isArray(clientesList) ? clientesList : []);
+        }).catch((error) => {
+            console.error(error);
+        });
+    };
+
     // estado para administrar mensajes de error del formulario
     const [errors, setErrors] = useState({
         nombre: '',
         email: ''
     });
+
 
     // Función para validar cada propiedad obligatoria
     function validateForm() {
@@ -46,14 +60,30 @@ const ClienteForm = () => {
             valid = false;
         }
 
-        // email
+        // email - validar formato y duplicados
         if (email.trim()) {
+            const emailTrim = email.trim();
             const validEmail = /^(?=.{6,254}$)(?=.{1,64}@)[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-            if (!validEmail.test(email)) {
+            if (!validEmail.test(emailTrim)) {
                 errorsCopy.email = 'Email is not correct';
                 valid = false;
             } else {
-                errorsCopy.email = '';
+                // Verificar que no exista otro cliente con el mismo email (case-insensitive)
+                const emailLower = emailTrim.toLowerCase();
+                const existeDuplicado = clientes.some(c => {
+                    // Si es actualización, excluir el cliente actual
+                    if (id && c.idCliente === parseInt(id)) {
+                        return false;
+                    }
+                    return c.email && c.email.trim().toLowerCase() === emailLower;
+                });
+                
+                if (existeDuplicado) {
+                    errorsCopy.email = 'Ya existe un cliente con este correo electrónico';
+                    valid = false;
+                } else {
+                    errorsCopy.email = '';
+                }
             }
         } else {
             errorsCopy.email = 'Email is required';
